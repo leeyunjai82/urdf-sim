@@ -8,7 +8,7 @@ A browser-based URDF robot simulator. No installation needed — just upload you
 
 ---
 
-<video src="test.mp4" controls width="100%"></video>
+![demo](test.mp4)
 
 ---
 
