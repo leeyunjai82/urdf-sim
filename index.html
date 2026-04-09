@@ -61,7 +61,7 @@ canvas#cv{display:block;width:100%!important;height:100%!important}
 .no-joint{text-align:center;color:#2a2a3a;font-size:11px;padding:40px 16px;line-height:1.8}
 .group-header{display:flex;align-items:center;gap:6px;padding:5px 4px;cursor:pointer;color:#444;font-size:10px;text-transform:uppercase;letter-spacing:.8px;user-select:none;margin-top:3px}
 .group-header:hover{color:#666}
-.garr{font-size:8px;transition:transform .15s;flex-shrink:0}
+.garr{font-size:8px;transition:transform .15px;flex-shrink:0}
 .garr.open{transform:rotate(90deg)}
 .group-body{overflow:hidden}
 .ji{margin-bottom:5px;background:#12121e;border-radius:7px;padding:6px 9px;border:1px solid #1a1a28;transition:border-color .15s}
@@ -176,19 +176,14 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3)}
 <!-- TIMELINE PANEL -->
 <div class="timeline-panel">
   <div class="tl-controls">
-    <!-- Transport -->
     <button class="tl-btn" id="tlToStart" title="처음으로 (Go to Start)">&#x23EE;</button>
     <button class="tl-btn" id="tlPlayPause" title="재생/정지 (Play/Pause)">&#x25B6;</button>
     <button class="tl-btn" id="tlStop" title="정지 (Stop)">&#x25A0;</button>
     <span class="tl-time-display" id="tlTimeDisp">0.00s</span>
     <div class="tl-sep"></div>
-
-    <!-- Keyframe -->
     <button class="tl-btn accent" id="tlAddKf">+ 키프레임 추가 (Add Keyframe)</button>
     <button class="tl-btn danger" id="tlDelKf">&#x2715; 삭제 (Delete)</button>
     <div class="tl-sep"></div>
-
-    <!-- Settings -->
     <span class="tl-label">총 길이 (Duration)</span>
     <input class="tl-dur" id="tlDurInput" type="number" value="5" min="1" max="60" step="0.5">
     <span class="tl-label">s &nbsp; 속도 (Speed)</span>
@@ -200,8 +195,6 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3)}
     </select>
     <button class="tl-btn" id="tlLoopBtn">&#x1F501; 루프 (Loop)</button>
     <div class="tl-sep"></div>
-
-    <!-- Motion export -->
     <button class="tl-btn" id="tlSaveMotion">&#x1F4BE; 모션 저장 (Save Motion)</button>
     <button class="tl-btn" id="tlLoadMotion">&#x1F4C2; 불러오기 (Load)</button>
     <input type="file" id="motionFileIn" accept=".json">
@@ -334,7 +327,7 @@ let sliderEls={},valEls={};
 // ═══════════════════════════════════════════════════════════
 // TIMELINE STATE
 // ═══════════════════════════════════════════════════════════
-let keyframes=[];   // [{id,time,joints:{name:angle}}]
+let keyframes=[];
 let kfIdCounter=0;
 let currentTime=0;
 let duration=5;
@@ -343,7 +336,6 @@ let playSpeed=1;
 let loopMode=false;
 let selectedKfId=null;
 let playLastT=null;
-// drag state
 let tlDragging=false,tlDragKfId=null,tlSeeking=false;
 
 // ═══════════════════════════════════════════════════════════
@@ -352,7 +344,6 @@ let tlDragging=false,tlDragKfId=null,tlSeeking=false;
 let fps=0,fpsT=performance.now();
 function renderLoop(now){
   requestAnimationFrame(renderLoop);
-  // playback
   if(isPlaying){
     if(playLastT!==null){
       currentTime+=(now-playLastT)/1000*playSpeed;
@@ -406,15 +397,18 @@ async function loadRobot(){
     const geos={};const total=needed.size;let loaded=0;
     const pbar=document.getElementById('pbar'),ptext=document.getElementById('ptext');
     for(const b of needed){
-      geos[b]=parseSTL(await readBuf(meshMap[b]));
+      // ★ FIX: computeVertexNormals() — STL 법선 누락/오류 시 강제 재계산
+      const geo=parseSTL(await readBuf(meshMap[b]));
+      geo.computeVertexNormals();
+      geos[b]=geo;
       pbar.style.width=`${(++loaded/total)*100}%`;
       ptext.textContent=`${loaded} / ${total} files`;
       await sleep(0);
     }
 
     function getColor(n){const k=n.toLowerCase();
-      if(k.includes('left')||k.startsWith('l_'))return 0x4fc3f7;
-      if(k.includes('right')||k.startsWith('r_'))return 0xf48fb1;
+      if(k.includes('left')||k.startsWith('l_')||k.includes('_l_')||k.endsWith('_l'))return 0x4fc3f7;
+      if(k.includes('right')||k.startsWith('r_')||k.includes('_r_')||k.endsWith('_r'))return 0xf48fb1;
       if(k.includes('head')||k.includes('servo'))return 0xffb74d;
       if(k.includes('hand')||k.includes('finger')||k.includes('thumb')||k.includes('index')||k.includes('middle')||k.includes('little')||k.includes('palm'))return 0xce93d8;
       if(k.includes('hip')||k.includes('pelvis')||k.includes('waist')||k.includes('torso'))return 0x90a4ae;
@@ -439,7 +433,7 @@ async function loadRobot(){
     }
     robotRoot=mkLink(rootName);
     if(robotRoot){
-      robotRoot.rotation.x=-Math.PI/2;  // Z-up → Y-up
+      robotRoot.rotation.x=-Math.PI/2;
       scene.add(robotRoot);
       const box=new THREE.Box3().setFromObject(robotRoot);
       robotRoot.position.y=-box.min.y;
@@ -467,12 +461,12 @@ function buildSliders(joints){
   for(const j of movable){const n=j.name.toLowerCase();
     if(n.includes('head'))groups['머리 (Head)'].push(j);
     else if(n.includes('waist')||n.includes('pelvis')||(n.includes('hip')&&n.includes('yaw')))groups['허리/골반 (Torso)'].push(j);
-    else if((n.includes('left')||n.startsWith('l_'))&&(n.includes('shoulder')||n.includes('elbow')||n.includes('wrist')))groups['왼팔 (L.Arm)'].push(j);
-    else if((n.includes('right')||n.startsWith('r_'))&&(n.includes('shoulder')||n.includes('elbow')||n.includes('wrist')))groups['오른팔 (R.Arm)'].push(j);
-    else if((n.includes('left')||n.startsWith('l_'))&&(n.includes('hand')||n.includes('finger')||n.includes('thumb')||n.includes('index')||n.includes('middle')||n.includes('little')||n.includes('palm')))groups['왼손 (L.Hand)'].push(j);
-    else if((n.includes('right')||n.startsWith('r_'))&&(n.includes('hand')||n.includes('finger')||n.includes('thumb')||n.includes('index')||n.includes('middle')||n.includes('little')||n.includes('palm')))groups['오른손 (R.Hand)'].push(j);
-    else if((n.includes('left')||n.startsWith('l_'))&&(n.includes('hip')||n.includes('knee')||n.includes('ankle')||n.includes('foot')))groups['왼다리 (L.Leg)'].push(j);
-    else if((n.includes('right')||n.startsWith('r_'))&&(n.includes('hip')||n.includes('knee')||n.includes('ankle')||n.includes('foot')))groups['오른다리 (R.Leg)'].push(j);
+    else if((n.includes('left')||n.startsWith('l_')||n.includes('_l_'))&&(n.includes('shoulder')||n.includes('elbow')||n.includes('wrist')))groups['왼팔 (L.Arm)'].push(j);
+    else if((n.includes('right')||n.startsWith('r_')||n.includes('_r_'))&&(n.includes('shoulder')||n.includes('elbow')||n.includes('wrist')))groups['오른팔 (R.Arm)'].push(j);
+    else if((n.includes('left')||n.startsWith('l_')||n.includes('_l_'))&&(n.includes('hand')||n.includes('finger')||n.includes('thumb')||n.includes('index')||n.includes('middle')||n.includes('little')||n.includes('palm')))groups['왼손 (L.Hand)'].push(j);
+    else if((n.includes('right')||n.startsWith('r_')||n.includes('_r_'))&&(n.includes('hand')||n.includes('finger')||n.includes('thumb')||n.includes('index')||n.includes('middle')||n.includes('little')||n.includes('palm')))groups['오른손 (R.Hand)'].push(j);
+    else if((n.includes('left')||n.startsWith('l_')||n.includes('_l_'))&&(n.includes('hip')||n.includes('knee')||n.includes('ankle')||n.includes('foot')))groups['왼다리 (L.Leg)'].push(j);
+    else if((n.includes('right')||n.startsWith('r_')||n.includes('_r_'))&&(n.includes('hip')||n.includes('knee')||n.includes('ankle')||n.includes('foot')))groups['오른다리 (R.Leg)'].push(j);
     else groups['기타 (Other)'].push(j);
   }
   const el=document.getElementById('jointsEl');
@@ -527,7 +521,6 @@ function applyAtTime(t){
   if(!keyframes.length)return;
   const sorted=[...keyframes].sort((a,b)=>a.time-b.time);
   if(sorted.length===1){applyPose(sorted[0].joints);return;}
-  // clamp
   if(t<=sorted[0].time){applyPose(sorted[0].joints);return;}
   if(t>=sorted[sorted.length-1].time){applyPose(sorted[sorted.length-1].joints);return;}
   let prev=sorted[0],next=sorted[1];
@@ -535,7 +528,6 @@ function applyAtTime(t){
     if(sorted[i].time<=t&&sorted[i+1].time>=t){prev=sorted[i];next=sorted[i+1];break;}
   }
   const alpha=next.time===prev.time?1:(t-prev.time)/(next.time-prev.time);
-  // smooth step
   const ease=alpha*alpha*(3-2*alpha);
   const merged={};
   const allJ=new Set([...Object.keys(prev.joints),...Object.keys(next.joints)]);
@@ -544,7 +536,6 @@ function applyAtTime(t){
 }
 function addKeyframe(){
   if(!Object.keys(sliderEls).length){alert('로봇을 먼저 로드하세요 (Load robot first)');return;}
-  // snap to nearest existing or add new
   const SNAP=0.05;
   const existing=keyframes.find(k=>Math.abs(k.time-currentTime)<SNAP);
   if(existing){
@@ -571,10 +562,7 @@ function updateKfCount(){
 const tlCanvas=document.getElementById('tlCanvas');
 const tlWrap=document.getElementById('tlWrap');
 
-function resizeTlCanvas(){
-  tlCanvas.width=tlWrap.clientWidth;
-  tlCanvas.height=tlWrap.clientHeight;
-}
+function resizeTlCanvas(){tlCanvas.width=tlWrap.clientWidth;tlCanvas.height=tlWrap.clientHeight;}
 resizeTlCanvas();new ResizeObserver(resizeTlCanvas).observe(tlWrap);
 
 function timeToX(t){return Math.round((t/duration)*tlCanvas.width);}
@@ -584,165 +572,100 @@ function drawTimeline(){
   const canvas=tlCanvas,ctx=canvas.getContext('2d');
   const W=canvas.width,H=canvas.height;
   if(W<10||H<10)return;
-
-  const LABEL_H=20, TRACK_Y=0, TRACK_H=H-LABEL_H;
-
+  const TRACK_Y=0,TRACK_H=H-20;
   ctx.fillStyle='#0a0a12';ctx.fillRect(0,0,W,H);
-
-  // grid lines
   const step=duration<=10?0.5:duration<=30?1:2;
   for(let t=0;t<=duration;t+=step){
     const x=timeToX(t);const isWhole=Math.abs(t%1)<.01;
     ctx.strokeStyle=isWhole?'#1e1e2e':'#161620';ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(x,TRACK_Y);ctx.lineTo(x,TRACK_H);ctx.stroke();
-    if(isWhole||duration<=5){
-      ctx.fillStyle='#2a2a3a';ctx.font='9px monospace';
-      ctx.fillText(t.toFixed(1)+'s',x+2,H-5);
-    }
+    if(isWhole||duration<=5){ctx.fillStyle='#2a2a3a';ctx.font='9px monospace';ctx.fillText(t.toFixed(1)+'s',x+2,H-5);}
   }
-
-  // duration end marker
   const endX=timeToX(duration);
   ctx.strokeStyle='#2a2a3a';ctx.lineWidth=2;ctx.setLineDash([4,3]);
   ctx.beginPath();ctx.moveTo(endX,TRACK_Y);ctx.lineTo(endX,TRACK_H);ctx.stroke();
   ctx.setLineDash([]);
-
-  // keyframe connectors
   const sorted=[...keyframes].sort((a,b)=>a.time-b.time);
   if(sorted.length>=2){
     ctx.strokeStyle='#13bfd520';ctx.lineWidth=1.5;
-    ctx.beginPath();
-    ctx.moveTo(timeToX(sorted[0].time),TRACK_H/2);
+    ctx.beginPath();ctx.moveTo(timeToX(sorted[0].time),TRACK_H/2);
     for(const kf of sorted.slice(1))ctx.lineTo(timeToX(kf.time),TRACK_H/2);
     ctx.stroke();
   }
-
-  // keyframes
   for(const kf of sorted){
-    const x=timeToX(kf.time);
-    const sel=kf.id===selectedKfId;
-    const R=sel?9:7;
-
-    // shadow/glow
-    if(sel){ctx.shadowColor='#f9c300';ctx.shadowBlur=10;}
-    else{ctx.shadowColor='#13bfd5';ctx.shadowBlur=4;}
-
-    // diamond
+    const x=timeToX(kf.time);const sel=kf.id===selectedKfId;const R=sel?9:7;
+    if(sel){ctx.shadowColor='#f9c300';ctx.shadowBlur=10;}else{ctx.shadowColor='#13bfd5';ctx.shadowBlur=4;}
     ctx.fillStyle=sel?'#f9c300':'#13bfd5';
-    ctx.beginPath();
-    ctx.moveTo(x,TRACK_H/2-R);ctx.lineTo(x+R,TRACK_H/2);
-    ctx.lineTo(x,TRACK_H/2+R);ctx.lineTo(x-R,TRACK_H/2);
-    ctx.closePath();ctx.fill();
-
+    ctx.beginPath();ctx.moveTo(x,TRACK_H/2-R);ctx.lineTo(x+R,TRACK_H/2);ctx.lineTo(x,TRACK_H/2+R);ctx.lineTo(x-R,TRACK_H/2);ctx.closePath();ctx.fill();
     ctx.shadowBlur=0;
-
-    // vertical tick
     ctx.strokeStyle=sel?'#f9c30066':'#13bfd533';ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(x,TRACK_Y);ctx.lineTo(x,TRACK_H);ctx.stroke();
-
-    // time label
-    ctx.fillStyle=sel?'#f9c300':'#13bfd566';ctx.font='9px monospace';
-    ctx.fillText(kf.time.toFixed(2),x+4,TRACK_H/2-12);
+    ctx.fillStyle=sel?'#f9c300':'#13bfd566';ctx.font='9px monospace';ctx.fillText(kf.time.toFixed(2),x+4,TRACK_H/2-12);
   }
-
-  // playhead
   const px=timeToX(currentTime);
   ctx.shadowColor='#ff4444';ctx.shadowBlur=6;
   ctx.strokeStyle='#ff5555';ctx.lineWidth=2;
   ctx.beginPath();ctx.moveTo(px,TRACK_Y);ctx.lineTo(px,TRACK_H);ctx.stroke();
   ctx.shadowBlur=0;
-  // playhead handle
   ctx.fillStyle='#ff5555';
   ctx.beginPath();ctx.moveTo(px-6,TRACK_Y);ctx.lineTo(px+6,TRACK_Y);ctx.lineTo(px,TRACK_Y+10);ctx.closePath();ctx.fill();
 }
 
-// ── Timeline mouse events ─────────────────────────────────
-function getKfAtX(x){
-  const HIT=10;
-  return keyframes.find(kf=>Math.abs(timeToX(kf.time)-x)<HIT)||null;
-}
+function getKfAtX(x){return keyframes.find(kf=>Math.abs(timeToX(kf.time)-x)<10)||null;}
 tlCanvas.addEventListener('mousedown',e=>{
-  const rect=tlCanvas.getBoundingClientRect();
-  const x=e.clientX-rect.left;
+  const rect=tlCanvas.getBoundingClientRect();const x=e.clientX-rect.left;
   const kf=getKfAtX(x);
-  if(kf){
-    selectedKfId=kf.id;tlDragging=true;tlDragKfId=kf.id;
-    applyAtTime(kf.time);currentTime=kf.time;
-  } else {
-    tlSeeking=true;
-    currentTime=xToTime(x);
-    if(!isPlaying)applyAtTime(currentTime);
-  }
+  if(kf){selectedKfId=kf.id;tlDragging=true;tlDragKfId=kf.id;applyAtTime(kf.time);currentTime=kf.time;}
+  else{tlSeeking=true;currentTime=xToTime(x);if(!isPlaying)applyAtTime(currentTime);}
 });
 window.addEventListener('mousemove',e=>{
   if(tlDragging&&tlDragKfId!==null){
-    const rect=tlCanvas.getBoundingClientRect();
-    const x=e.clientX-rect.left;
+    const rect=tlCanvas.getBoundingClientRect();const x=e.clientX-rect.left;
     const kf=keyframes.find(k=>k.id===tlDragKfId);
     if(kf){kf.time=parseFloat(xToTime(x).toFixed(3));currentTime=kf.time;if(!isPlaying)applyAtTime(kf.time);}
   } else if(tlSeeking){
-    const rect=tlCanvas.getBoundingClientRect();
-    currentTime=xToTime(e.clientX-rect.left);
+    const rect=tlCanvas.getBoundingClientRect();currentTime=xToTime(e.clientX-rect.left);
     if(!isPlaying)applyAtTime(currentTime);
   }
 });
 window.addEventListener('mouseup',()=>{tlDragging=false;tlDragKfId=null;tlSeeking=false;});
 tlCanvas.addEventListener('dblclick',e=>{
-  // double click = add keyframe at that time
-  const rect=tlCanvas.getBoundingClientRect();
-  currentTime=xToTime(e.clientX-rect.left);
-  addKeyframe();
+  const rect=tlCanvas.getBoundingClientRect();currentTime=xToTime(e.clientX-rect.left);addKeyframe();
 });
 
 // ═══════════════════════════════════════════════════════════
 // TIMELINE CONTROLS
 // ═══════════════════════════════════════════════════════════
 document.getElementById('tlToStart').addEventListener('click',()=>{
-  currentTime=0;isPlaying=false;playLastT=null;
-  document.getElementById('tlPlayPause').textContent='▶';
-  applyAtTime(0);
+  currentTime=0;isPlaying=false;playLastT=null;document.getElementById('tlPlayPause').textContent='▶';applyAtTime(0);
 });
 document.getElementById('tlPlayPause').addEventListener('click',function(){
   if(!keyframes.length){alert('키프레임을 먼저 추가하세요 (Add a keyframe first)');return;}
-  isPlaying=!isPlaying;
-  this.textContent=isPlaying?'⏸':'▶';
-  if(isPlaying){
-    playLastT=null;
-    if(currentTime>=duration)currentTime=0;
-  }
+  isPlaying=!isPlaying;this.textContent=isPlaying?'⏸':'▶';
+  if(isPlaying){playLastT=null;if(currentTime>=duration)currentTime=0;}
 });
 document.getElementById('tlStop').addEventListener('click',()=>{
-  isPlaying=false;playLastT=null;currentTime=0;
-  document.getElementById('tlPlayPause').textContent='▶';
-  applyAtTime(0);
+  isPlaying=false;playLastT=null;currentTime=0;document.getElementById('tlPlayPause').textContent='▶';applyAtTime(0);
 });
 document.getElementById('tlAddKf').addEventListener('click',addKeyframe);
 document.getElementById('tlDelKf').addEventListener('click',deleteSelectedKf);
 document.getElementById('tlDurInput').addEventListener('change',function(){
-  duration=Math.max(1,parseFloat(this.value)||5);this.value=duration;
-  if(currentTime>duration)currentTime=duration;
+  duration=Math.max(1,parseFloat(this.value)||5);this.value=duration;if(currentTime>duration)currentTime=duration;
 });
 document.getElementById('tlSpeedSel').addEventListener('change',function(){playSpeed=parseFloat(this.value);});
-document.getElementById('tlLoopBtn').addEventListener('click',function(){
-  loopMode=!loopMode;this.classList.toggle('on',loopMode);
-});
+document.getElementById('tlLoopBtn').addEventListener('click',function(){loopMode=!loopMode;this.classList.toggle('on',loopMode);});
 
-// Motion save/load
 document.getElementById('tlSaveMotion').addEventListener('click',()=>{
-  const data={duration,keyframes};
-  const a=document.createElement('a');a.download='motion.json';
+  const data={duration,keyframes};const a=document.createElement('a');a.download='motion.json';
   a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.click();
 });
 document.getElementById('tlLoadMotion').addEventListener('click',()=>document.getElementById('motionFileIn').click());
 document.getElementById('motionFileIn').addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;
   const data=JSON.parse(await readText(f));
-  duration=data.duration||5;
-  document.getElementById('tlDurInput').value=duration;
-  keyframes=data.keyframes||[];
-  kfIdCounter=keyframes.reduce((m,k)=>Math.max(m,k.id+1),0);
-  updateKfCount();currentTime=0;applyAtTime(0);
-  e.target.value='';
+  duration=data.duration||5;document.getElementById('tlDurInput').value=duration;
+  keyframes=data.keyframes||[];kfIdCounter=keyframes.reduce((m,k)=>Math.max(m,k.id+1),0);
+  updateKfCount();currentTime=0;applyAtTime(0);e.target.value='';
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -768,7 +691,6 @@ document.getElementById('poseFileIn').addEventListener('change',async e=>{
   e.target.value='';
 });
 
-// Click to highlight
 cv.addEventListener('click',e=>{
   if(!allMeshes.length)return;
   const rect=cv.getBoundingClientRect();
