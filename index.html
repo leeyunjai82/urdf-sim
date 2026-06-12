@@ -4,106 +4,125 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>URDF Web Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
+:root{
+  --bg:#E9EBED;          /* 제도판 그레이 */
+  --panel:#F7F8F9;       /* 패널 */
+  --panel2:#FFFFFF;
+  --line:#C9CED4;        /* 헤어라인 */
+  --line-soft:#DCE0E4;
+  --ink:#1C2530;         /* 본문 잉크 */
+  --ink2:#5A6572;
+  --ink3:#8B95A1;
+  --acc:#E8590C;         /* 머신 오렌지 */
+  --acc-soft:#FBE4D5;
+  --ok:#2F7D4F;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --sans:'Archivo','Segoe UI',system-ui,sans-serif;
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0a0a0f;color:#d0d0d8;font-family:'Segoe UI',system-ui,sans-serif;display:flex;flex-direction:column;height:100vh;overflow:hidden;font-size:13px}
-header{background:#0f0f1a;border-bottom:1px solid #13bfd530;padding:0 16px;display:flex;align-items:center;gap:12px;height:44px;flex-shrink:0}
-header h1{font-size:14px;color:#13bfd5;font-weight:600;letter-spacing:.5px}
-.badge{font-size:10px;padding:2px 8px;border-radius:10px;background:#1a1a2a;color:#555;border:1px solid #222}
-.badge.ok{color:#4caf80;border-color:#4caf5044}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);display:flex;flex-direction:column;height:100vh;overflow:hidden;font-size:13px}
+
+/* 헤더: 도면 타이틀블록 */
+header{background:var(--panel2);border-bottom:1px solid var(--line);padding:0 0 0 16px;display:flex;align-items:center;gap:0;height:46px;flex-shrink:0}
+header h1{font-size:13px;color:var(--ink);font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding-right:16px;border-right:1px solid var(--line);height:100%;display:flex;align-items:center}
+.badge{font-family:var(--mono);font-size:10px;padding:0 14px;height:100%;display:flex;align-items:center;color:var(--ink3);border-right:1px solid var(--line)}
+.badge.ok{color:var(--ok)}
 .main{display:flex;flex:1;overflow:hidden;min-height:0}
 
 /* LEFT */
-.left{width:210px;background:#0d0d16;border-right:1px solid #1a1a28;display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
-.sec{padding:10px 12px;border-bottom:1px solid #1a1a28}
-.sec-title{font-size:10px;text-transform:uppercase;color:#444;letter-spacing:1.2px;margin-bottom:8px}
-.upload-zone{display:block;width:100%;padding:8px 10px;background:#12121e;border:1px dashed #2a2a3a;border-radius:7px;color:#555;font-size:11px;cursor:pointer;text-align:center;margin-bottom:6px;transition:all .2s;line-height:1.4}
-.upload-zone:hover{border-color:#13bfd5;color:#13bfd5}
-.upload-zone.done{border-style:solid;border-color:#4caf5066;color:#4caf80;background:#0a1a0f}
+.left{width:212px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sec{padding:12px;border-bottom:1px solid var(--line-soft)}
+.sec-title{font-size:9.5px;text-transform:uppercase;color:var(--ink3);letter-spacing:.16em;margin-bottom:9px;font-weight:600}
+.upload-zone{display:block;width:100%;padding:8px 10px;background:var(--panel2);border:1px dashed var(--line);border-radius:2px;color:var(--ink2);font-size:11px;cursor:pointer;text-align:center;margin-bottom:6px;transition:border-color .15s,color .15s;line-height:1.4}
+.upload-zone:hover{border-color:var(--acc);color:var(--acc)}
+.upload-zone.done{border-style:solid;border-color:var(--ok);color:var(--ok);background:#F0F7F2}
 input[type=file]{display:none}
-.btn-load{width:100%;padding:7px;background:#13bfd5;color:#000;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;margin-top:2px}
-.btn-load:hover{background:#0fa8bc}
-.btn-load:disabled{background:#1a1a2a;color:#333;cursor:not-allowed}
-.tb{display:flex;align-items:center;gap:7px;width:100%;padding:6px 9px;background:#12121e;border:1px solid #1e1e2e;border-radius:7px;color:#666;font-size:11px;cursor:pointer;margin-bottom:5px;transition:all .15s;text-align:left}
-.tb:hover{border-color:#13bfd533;color:#99d5db}
-.tb.on{background:#13bfd510;border-color:#13bfd555;color:#13bfd5}
+.btn-load{width:100%;padding:8px;background:var(--ink);color:#fff;border:none;border-radius:2px;font-size:11.5px;font-weight:600;letter-spacing:.08em;cursor:pointer;margin-top:2px;font-family:var(--sans)}
+.btn-load:hover{background:var(--acc)}
+.btn-load:disabled{background:var(--line-soft);color:var(--ink3);cursor:not-allowed}
+.tb{display:flex;align-items:center;gap:8px;width:100%;padding:6px 9px;background:transparent;border:1px solid transparent;border-radius:2px;color:var(--ink2);font-size:11.5px;cursor:pointer;margin-bottom:2px;transition:all .12s;text-align:left;font-family:var(--sans)}
+.tb:hover{background:var(--panel2);border-color:var(--line-soft)}
+.tb.on{background:var(--acc-soft);border-color:var(--acc);color:var(--acc)}
 .tb .ic{width:13px;flex-shrink:0;text-align:center;font-size:11px}
-.info-row{display:flex;justify-content:space-between;font-size:11px;padding:2px 0;color:#444}
-.info-val{color:#666}
+.info-row{display:flex;justify-content:space-between;font-size:11px;padding:2.5px 0;color:var(--ink3);font-family:var(--mono)}
+.info-val{color:var(--ink)}
 .pose-row{display:flex;gap:5px;margin-top:5px}
-.pose-btn{flex:1;padding:5px;background:#12121e;border:1px solid #1e1e2e;border-radius:6px;color:#555;font-size:10px;cursor:pointer;text-align:center;transition:all .15s}
-.pose-btn:hover{border-color:#13bfd533;color:#99d5db}
+.pose-btn{flex:1;padding:6px;background:var(--panel2);border:1px solid var(--line-soft);border-radius:2px;color:var(--ink2);font-size:10px;cursor:pointer;text-align:center;transition:all .12s}
+.pose-btn:hover{border-color:var(--acc);color:var(--acc)}
 
 /* VIEWPORT */
-.viewport{flex:1;position:relative;overflow:hidden;background:#0a0a0f}
+.viewport{flex:1;position:relative;overflow:hidden;background:#DFE2E5}
 canvas#cv{display:block;width:100%!important;height:100%!important}
-.hud{position:absolute;bottom:10px;left:10px;font-size:10px;color:#282838;pointer-events:none;line-height:1.9}
+.hud{position:absolute;bottom:10px;left:12px;font-size:10px;color:var(--ink3);pointer-events:none;line-height:1.9;font-family:var(--mono)}
 .empty-msg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;pointer-events:none}
-.em-icon{font-size:40px;opacity:.15}
-.em-msg{font-size:12px;color:#2a2a38;line-height:1.7;text-align:center}
-.load-overlay{position:absolute;inset:0;background:#0a0a0fdd;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
-.load-title{font-size:15px;color:#13bfd5;font-weight:500}
-.pbar-bg{width:280px;height:5px;background:#1a1a28;border-radius:3px}
-.pbar-fill{height:100%;background:#13bfd5;border-radius:3px;transition:width .07s;width:0%}
-.pbar-text{font-size:11px;color:#555}
-.tooltip{position:absolute;background:#14141e;border:1px solid #2a2a3a;border-radius:6px;padding:5px 10px;font-size:11px;color:#aaa;pointer-events:none;z-index:100;display:none}
+.em-icon{font-size:38px;opacity:.2;filter:grayscale(1)}
+.em-msg{font-size:12px;color:var(--ink3);line-height:1.8;text-align:center}
+.load-overlay{position:absolute;inset:0;background:#E9EBEDee;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.load-title{font-size:14px;color:var(--ink);font-weight:600;letter-spacing:.05em}
+.pbar-bg{width:280px;height:3px;background:var(--line)}
+.pbar-fill{height:100%;background:var(--acc);transition:width .07s;width:0%}
+.pbar-text{font-size:11px;color:var(--ink2);font-family:var(--mono)}
+.tooltip{position:absolute;background:var(--ink);border-radius:2px;padding:5px 10px;font-size:11px;color:#fff;pointer-events:none;z-index:100;display:none;font-family:var(--mono)}
 
 /* RIGHT */
-.right{width:275px;background:#0d0d16;border-left:1px solid #1a1a28;display:flex;flex-direction:column;flex-shrink:0}
-.right-head{padding:8px 12px;border-bottom:1px solid #1a1a28;display:flex;align-items:center;justify-content:space-between;gap:7px}
-.right-head b{font-size:12px;font-weight:600;color:#aaa;white-space:nowrap}
-.search-box{flex:1;background:#12121e;border:1px solid #1e1e2e;border-radius:5px;padding:4px 8px;color:#aaa;font-size:11px;outline:none;min-width:0}
-.search-box::placeholder{color:#2a2a3a}
-.search-box:focus{border-color:#13bfd544}
-.jcount{font-size:10px;color:#444;white-space:nowrap}
-.joints{flex:1;overflow-y:auto;padding:7px}
-.no-joint{text-align:center;color:#2a2a3a;font-size:11px;padding:40px 16px;line-height:1.8}
-.group-header{display:flex;align-items:center;gap:6px;padding:5px 4px;cursor:pointer;color:#444;font-size:10px;text-transform:uppercase;letter-spacing:.8px;user-select:none;margin-top:3px}
-.group-header:hover{color:#666}
-.garr{font-size:8px;transition:transform .15px;flex-shrink:0}
+.right{width:280px;background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;flex-shrink:0}
+.right-head{padding:9px 12px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;justify-content:space-between;gap:7px}
+.right-head b{font-size:10px;font-weight:600;color:var(--ink2);white-space:nowrap;text-transform:uppercase;letter-spacing:.12em}
+.search-box{flex:1;background:var(--panel2);border:1px solid var(--line-soft);border-radius:2px;padding:4px 8px;color:var(--ink);font-size:11px;outline:none;min-width:0;font-family:var(--mono)}
+.search-box::placeholder{color:var(--ink3)}
+.search-box:focus{border-color:var(--acc)}
+.jcount{font-size:10px;color:var(--ink3);white-space:nowrap;font-family:var(--mono)}
+.joints{flex:1;overflow-y:auto;padding:8px}
+.no-joint{text-align:center;color:var(--ink3);font-size:11px;padding:40px 16px;line-height:1.8}
+.group-header{display:flex;align-items:center;gap:6px;padding:5px 4px;cursor:pointer;color:var(--ink3);font-size:9.5px;text-transform:uppercase;letter-spacing:.14em;user-select:none;margin-top:4px;font-weight:600}
+.group-header:hover{color:var(--ink)}
+.garr{font-size:8px;transition:transform .15s;flex-shrink:0}
 .garr.open{transform:rotate(90deg)}
 .group-body{overflow:hidden}
-.ji{margin-bottom:5px;background:#12121e;border-radius:7px;padding:6px 9px;border:1px solid #1a1a28;transition:border-color .15s}
-.ji:hover{border-color:#252535}
-.ji.highlight{border-color:#f9c30055;background:#f9c30006}
-.ji-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:4px}
-.ji-name{font-size:10px;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;cursor:default}
-.ji-type{font-size:9px;color:#2a2a3a;padding:1px 4px;background:#1a1a28;border-radius:3px;flex-shrink:0}
-.ji-val{font-size:11px;color:#13bfd5;font-weight:600;min-width:46px;text-align:right;flex-shrink:0}
-input[type=range]{width:100%;height:3px;-webkit-appearance:none;appearance:none;background:#1e1e2e;border-radius:2px;outline:none;cursor:pointer}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;background:#13bfd5;border-radius:50%;transition:transform .1s}
-input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3)}
+.ji{margin-bottom:4px;background:var(--panel2);border-radius:2px;padding:7px 10px;border:1px solid var(--line-soft);border-left:2px solid var(--line);transition:border-color .12s}
+.ji:hover{border-left-color:var(--ink2)}
+.ji.highlight{border-color:var(--acc);border-left-color:var(--acc);background:var(--acc-soft)}
+.ji-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;gap:4px}
+.ji-name{font-size:10.5px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;cursor:default;font-family:var(--mono)}
+.ji-type{font-size:8.5px;color:var(--ink3);padding:1px 5px;border:1px solid var(--line-soft);border-radius:2px;flex-shrink:0;font-family:var(--mono);text-transform:uppercase}
+.ji-val{font-size:11px;color:var(--acc);font-weight:600;min-width:46px;text-align:right;flex-shrink:0;font-family:var(--mono)}
+input[type=range]{width:100%;height:2px;-webkit-appearance:none;appearance:none;background:var(--line);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;background:var(--panel2);border:2px solid var(--ink);border-radius:50%;transition:border-color .1s}
+input[type=range]:hover::-webkit-slider-thumb,input[type=range]:focus::-webkit-slider-thumb{border-color:var(--acc)}
 
-/* TIMELINE PANEL */
-.timeline-panel{height:190px;flex-shrink:0;background:#0a0a12;border-top:1px solid #13bfd530;display:flex;flex-direction:column}
-.tl-controls{height:38px;background:#0d0d18;border-bottom:1px solid #1a1a28;display:flex;align-items:center;padding:0 12px;gap:8px;flex-shrink:0}
-.tl-btn{padding:4px 8px;background:#12121e;border:1px solid #1e1e2e;border-radius:5px;color:#666;font-size:11px;cursor:pointer;white-space:nowrap;transition:all .15s}
-.tl-btn:hover{border-color:#13bfd544;color:#99d5db}
-.tl-btn.on{background:#13bfd510;border-color:#13bfd555;color:#13bfd5}
-.tl-btn.accent{background:#13bfd520;border-color:#13bfd5;color:#13bfd5}
-.tl-btn.danger{border-color:#ff444444;color:#ff6666}
-.tl-btn.danger:hover{background:#ff000010;border-color:#ff4444}
-.tl-sep{width:1px;height:18px;background:#1e1e2e;flex-shrink:0}
-.tl-label{font-size:10px;color:#444;white-space:nowrap}
-.tl-select{background:#12121e;border:1px solid #1e1e2e;border-radius:5px;color:#777;font-size:11px;padding:3px 6px;outline:none;cursor:pointer}
-.tl-dur{background:#12121e;border:1px solid #1e1e2e;border-radius:5px;color:#aaa;font-size:11px;padding:3px 6px;outline:none;width:52px;text-align:center}
-.tl-kf-count{font-size:10px;color:#333;margin-left:auto;white-space:nowrap}
-.tl-time-display{font-size:11px;color:#555;font-family:monospace;min-width:48px;text-align:center}
+/* TIMELINE */
+.timeline-panel{height:190px;flex-shrink:0;background:var(--panel);border-top:1px solid var(--line);display:flex;flex-direction:column}
+.tl-controls{height:38px;background:var(--panel2);border-bottom:1px solid var(--line-soft);display:flex;align-items:center;padding:0 12px;gap:8px;flex-shrink:0}
+.tl-btn{padding:4px 9px;background:var(--panel2);border:1px solid var(--line-soft);border-radius:2px;color:var(--ink2);font-size:11px;cursor:pointer;white-space:nowrap;transition:all .12s;font-family:var(--sans)}
+.tl-btn:hover{border-color:var(--ink2);color:var(--ink)}
+.tl-btn.on{background:var(--acc-soft);border-color:var(--acc);color:var(--acc)}
+.tl-btn.accent{background:var(--ink);border-color:var(--ink);color:#fff}
+.tl-btn.accent:hover{background:var(--acc);border-color:var(--acc)}
+.tl-btn.danger{border-color:#E5B5B5;color:#B33}
+.tl-btn.danger:hover{background:#FBEAEA;border-color:#B33}
+.tl-sep{width:1px;height:18px;background:var(--line-soft);flex-shrink:0}
+.tl-label{font-size:10px;color:var(--ink3);white-space:nowrap;text-transform:uppercase;letter-spacing:.08em}
+.tl-select{background:var(--panel2);border:1px solid var(--line-soft);border-radius:2px;color:var(--ink2);font-size:11px;padding:3px 6px;outline:none;cursor:pointer;font-family:var(--mono)}
+.tl-dur{background:var(--panel2);border:1px solid var(--line-soft);border-radius:2px;color:var(--ink);font-size:11px;padding:3px 6px;outline:none;width:52px;text-align:center;font-family:var(--mono)}
+.tl-kf-count{font-size:10px;color:var(--ink3);margin-left:auto;white-space:nowrap;font-family:var(--mono)}
+.tl-time-display{font-size:11px;color:var(--ink);font-family:var(--mono);min-width:48px;text-align:center;font-weight:600}
 
 .tl-body{flex:1;display:flex;overflow:hidden}
 .tl-track-labels{width:0;flex-shrink:0;overflow:hidden}
 .tl-canvas-wrap{flex:1;position:relative;overflow:hidden}
 #tlCanvas{display:block;cursor:crosshair}
 
-::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:#1e1e2e;border-radius:2px}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px}
 </style>
 </head>
 <body>
 <header>
-  <h1>&#x1F916; URDF Web Simulator</h1>
+  <h1>URDF Workbench</h1>
   <span class="badge" id="statusBadge">파일 업로드 필요 (Upload Files)</span>
 </header>
 
@@ -146,7 +165,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3)}
     <div class="empty-msg" id="emptyMsg">
       <div class="em-icon">&#x1F916;</div>
       <p class="em-msg">URDF + STL 파일을 업로드하고 (Upload files)<br>로드 버튼을 누르세요 (then press Load)<br><br>
-      <span style="font-size:10px;color:#1e1e28">STL은 meshes/ 폴더 전체 다중선택 (Select all STL files in meshes/)</span></p>
+      <span style="font-size:10px;color:#B0B7BE">STL은 meshes/ 폴더 전체 다중선택 (Select all STL files in meshes/)</span></p>
     </div>
     <div class="load-overlay" id="loadOv" style="display:none">
       <div class="load-title">모델 로딩 중... (Loading model...)</div>
@@ -155,7 +174,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3)}
     </div>
     <div class="hud">
       <span id="fpsEl">FPS: --</span>
-      <span style="color:#1e1e28">좌클릭 (Rotate) &nbsp; 우클릭 (Pan) &nbsp; 휠 (Zoom)</span>
+      <span style="color:#B0B7BE">좌클릭 (Rotate) &nbsp; 우클릭 (Pan) &nbsp; 휠 (Zoom)</span>
     </div>
     <div class="tooltip" id="tt"></div>
   </div>
@@ -285,8 +304,10 @@ function parseURDF(xml){
     const axEl=el.querySelector('axis');
     const axis=(axEl?.getAttribute('xyz')||'0 0 1').split(/\s+/).map(Number);
     const lim=el.querySelector('limit');
+    // ★ prismatic 기본 리미트는 0~0.05m (회전 기본값 ±3.14를 미터로 쓰면 비정상이라 분리)
+    const defLo=type==='prismatic'?0:-3.14, defHi=type==='prismatic'?0.05:3.14;
     joints[name]={name,type,parent,child,origin:parseOrig(el.querySelector('origin')),axis,
-      limit:{lower:lim?+lim.getAttribute('lower'):-3.14,upper:lim?+lim.getAttribute('upper'):3.14}};
+      limit:{lower:lim?+lim.getAttribute('lower'):defLo,upper:lim?+lim.getAttribute('upper'):defHi}};
   });
   return{links,joints};
 }
@@ -303,14 +324,14 @@ const sid=n=>n.replace(/\W/g,'_');
 const cv=document.getElementById('cv'),vp=document.getElementById('vp');
 const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,preserveDrawingBuffer:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-renderer.setClearColor(0x0a0a0f);
+renderer.setClearColor(0xDFE2E5);
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(45,1,.001,500);
 const orbit=new Orbit(camera,cv);
 scene.add(new THREE.AmbientLight(0xffffff,.45));
 const dl1=new THREE.DirectionalLight(0xffffff,.8);dl1.position.set(5,10,5);scene.add(dl1);
 const dl2=new THREE.DirectionalLight(0x8899ff,.25);dl2.position.set(-5,5,-5);scene.add(dl2);
-const grid=new THREE.GridHelper(14,28,0x181828,0x181828);scene.add(grid);
+const grid=new THREE.GridHelper(14,28,0xB8BEC5,0xCDD2D7);scene.add(grid);
 const raycaster=new THREE.Raycaster();const mouse=new THREE.Vector2();
 
 function resize(){const w=vp.clientWidth,h=vp.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
@@ -319,7 +340,7 @@ resize();new ResizeObserver(resize).observe(vp);
 // ═══════════════════════════════════════════════════════════
 // APP STATE
 // ═══════════════════════════════════════════════════════════
-let robotRoot=null,jointObjs={},baseQs={},jointDefs={};
+let robotRoot=null,jointObjs={},baseQs={},basePs={},jointDefs={};
 let allMeshes=[],allAxes=[],wireMode=false,axisMode=false;
 let selectedMesh=null,selectedOrigColor=null;
 let sliderEls={},valEls={};
@@ -381,7 +402,7 @@ async function loadRobot(){
   isPlaying=false;
   try{
     if(robotRoot){scene.remove(robotRoot);robotRoot=null;}
-    jointObjs={};baseQs={};allMeshes=[];allAxes=[];sliderEls={};valEls={};
+    jointObjs={};baseQs={};basePs={};allMeshes=[];allAxes=[];sliderEls={};valEls={};
 
     const urdfTxt=await readText(urdfFile);
     const{links,joints}=parseURDF(urdfTxt);
@@ -428,6 +449,7 @@ async function loadRobot(){
         const jg=new THREE.Group();jg.name='joint:'+jt.name;
         jg.position.set(...jt.origin.xyz);jg.setRotationFromEuler(new THREE.Euler(...jt.origin.rpy,'XYZ'));
         jointObjs[jt.name]=jg;baseQs[jt.name]=jg.quaternion.clone();
+        basePs[jt.name]=jg.position.clone();   // ★ prismatic용 기준 위치 저장
         const child=mkLink(jt.child);if(child)jg.add(child);grp.add(jg);}
       return grp;
     }
@@ -454,6 +476,9 @@ async function loadRobot(){
 // ═══════════════════════════════════════════════════════════
 // JOINT SLIDERS
 // ═══════════════════════════════════════════════════════════
+// 슬라이더 값 단위:
+//  - revolute/continuous : 라디안 (기존과 동일)
+//  - prismatic           : 0~180 서보각. 내부에서 lower~upper(m)로 변환
 function buildSliders(joints){
   const movable=Object.values(joints).filter(j=>j.type!=='fixed');
   document.getElementById('jcount').textContent=movable.length+' 관절 (joints)';
@@ -474,14 +499,21 @@ function buildSliders(joints){
   let html='';
   for(const[gname,jlist]of Object.entries(groups)){
     if(!jlist.length)continue;const gid=sid(gname);
-    html+=`<div class="group-header" onclick="toggleG('${gid}')"><span class="garr open" id="arr_${gid}">&#x25B6;</span><span>${gname}</span><span style="color:#2a2a3a;margin-left:4px">(${jlist.length})</span></div><div class="group-body" id="gb_${gid}">`;
-    for(const j of jlist){html+=`<div class="ji" id="ji_${sid(j.name)}" data-joint="${j.name}"><div class="ji-head"><span class="ji-name" title="${j.name}">${j.name}</span><span class="ji-type">${j.type}</span><span class="ji-val" id="v_${sid(j.name)}">0.0°</span></div><input type="range" class="jslider" data-joint="${j.name}" min="${j.limit.lower.toFixed(4)}" max="${j.limit.upper.toFixed(4)}" step="0.001" value="0" id="s_${sid(j.name)}"></div>`;}
+    html+=`<div class="group-header" onclick="toggleG('${gid}')"><span class="garr open" id="arr_${gid}">&#x25B6;</span><span>${gname}</span><span style="color:#B0B7BE;margin-left:4px">(${jlist.length})</span></div><div class="group-body" id="gb_${gid}">`;
+    for(const j of jlist){
+      // ★ prismatic: 슬라이더 0~180 (서보각), revolute: 라디안 리미트
+      const isP=j.type==='prismatic';
+      const mn=isP?'0':j.limit.lower.toFixed(4);
+      const mx=isP?'180':j.limit.upper.toFixed(4);
+      const st=isP?'1':'0.001';
+      html+=`<div class="ji" id="ji_${sid(j.name)}" data-joint="${j.name}"><div class="ji-head"><span class="ji-name" title="${j.name}">${j.name}</span><span class="ji-type">${j.type}</span><span class="ji-val" id="v_${sid(j.name)}">0.0°</span></div><input type="range" class="jslider" data-joint="${j.name}" min="${mn}" max="${mx}" step="${st}" value="0" id="s_${sid(j.name)}"></div>`;
+    }
     html+='</div>';
   }
   el.innerHTML=html;
   el.querySelectorAll('.jslider').forEach(sl=>{
     const jname=sl.dataset.joint;sliderEls[jname]=sl;valEls[jname]=document.getElementById('v_'+sid(jname));
-    sl.addEventListener('input',()=>{const a=parseFloat(sl.value);setAngle(jname,a);valEls[jname].textContent=(a*180/Math.PI).toFixed(1)+'°';});
+    sl.addEventListener('input',()=>{const v=parseFloat(sl.value);setJointValue(jname,v);valEls[jname].textContent=fmtVal(jname,v);});
   });
 }
 window.toggleG=function(gid){
@@ -496,11 +528,29 @@ document.getElementById('searchBox').addEventListener('input',function(){
   document.querySelectorAll('.ji').forEach(el=>el.style.display=(!q||el.dataset.joint?.toLowerCase().includes(q))?'':'none');
 });
 
-function setAngle(jname,angle){
+// ★ 값 표시: prismatic은 "서보각 (이동량 mm)"
+function fmtVal(jname,v){
+  const jd=jointDefs[jname];
+  if(jd&&jd.type==='prismatic'){
+    const d=jd.limit.lower+(v/180)*(jd.limit.upper-jd.limit.lower);
+    return v.toFixed(0)+'° ('+(d*1000).toFixed(1)+'mm)';
+  }
+  return (v*180/Math.PI).toFixed(1)+'°';
+}
+
+// ★ 조인트 적용: revolute=회전(기존 그대로), prismatic=축 방향 병진
+function setJointValue(jname,v){
   const jobj=jointObjs[jname],jdef=jointDefs[jname];if(!jobj||!jdef)return;
   const ax=new THREE.Vector3(...jdef.axis).normalize();
-  jobj.quaternion.copy(baseQs[jname]).multiply(new THREE.Quaternion().setFromAxisAngle(ax,angle));
+  if(jdef.type==='prismatic'){
+    const d=jdef.limit.lower+(v/180)*(jdef.limit.upper-jdef.limit.lower); // 서보각 -> m
+    const off=ax.clone().applyQuaternion(baseQs[jname]).multiplyScalar(d); // 축은 조인트 프레임 기준
+    jobj.position.copy(basePs[jname]).add(off);
+  }else{
+    jobj.quaternion.copy(baseQs[jname]).multiply(new THREE.Quaternion().setFromAxisAngle(ax,v));
+  }
 }
+const setAngle=setJointValue; // 하위 호환
 
 // ═══════════════════════════════════════════════════════════
 // TIMELINE CORE
@@ -511,10 +561,10 @@ function getCurrentPose(){
   return joints;
 }
 function applyPose(joints){
-  for(const[jname,angle]of Object.entries(joints)){
-    setAngle(jname,angle);
-    if(sliderEls[jname])sliderEls[jname].value=angle;
-    if(valEls[jname])valEls[jname].textContent=(angle*180/Math.PI).toFixed(1)+'°';
+  for(const[jname,val]of Object.entries(joints)){
+    setJointValue(jname,val);
+    if(sliderEls[jname])sliderEls[jname].value=val;
+    if(valEls[jname])valEls[jname].textContent=fmtVal(jname,val);
   }
 }
 function applyAtTime(t){
@@ -573,41 +623,41 @@ function drawTimeline(){
   const W=canvas.width,H=canvas.height;
   if(W<10||H<10)return;
   const TRACK_Y=0,TRACK_H=H-20;
-  ctx.fillStyle='#0a0a12';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#F7F8F9';ctx.fillRect(0,0,W,H);
   const step=duration<=10?0.5:duration<=30?1:2;
   for(let t=0;t<=duration;t+=step){
     const x=timeToX(t);const isWhole=Math.abs(t%1)<.01;
-    ctx.strokeStyle=isWhole?'#1e1e2e':'#161620';ctx.lineWidth=1;
+    ctx.strokeStyle=isWhole?'#C9CED4':'#E2E5E8';ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(x,TRACK_Y);ctx.lineTo(x,TRACK_H);ctx.stroke();
-    if(isWhole||duration<=5){ctx.fillStyle='#2a2a3a';ctx.font='9px monospace';ctx.fillText(t.toFixed(1)+'s',x+2,H-5);}
+    if(isWhole||duration<=5){ctx.fillStyle='#8B95A1';ctx.font='9px IBM Plex Mono,monospace';ctx.fillText(t.toFixed(1)+'s',x+2,H-5);}
   }
   const endX=timeToX(duration);
-  ctx.strokeStyle='#2a2a3a';ctx.lineWidth=2;ctx.setLineDash([4,3]);
+  ctx.strokeStyle='#8B95A1';ctx.lineWidth=2;ctx.setLineDash([4,3]);
   ctx.beginPath();ctx.moveTo(endX,TRACK_Y);ctx.lineTo(endX,TRACK_H);ctx.stroke();
   ctx.setLineDash([]);
   const sorted=[...keyframes].sort((a,b)=>a.time-b.time);
   if(sorted.length>=2){
-    ctx.strokeStyle='#13bfd520';ctx.lineWidth=1.5;
+    ctx.strokeStyle='#1C253022';ctx.lineWidth=1.5;
     ctx.beginPath();ctx.moveTo(timeToX(sorted[0].time),TRACK_H/2);
     for(const kf of sorted.slice(1))ctx.lineTo(timeToX(kf.time),TRACK_H/2);
     ctx.stroke();
   }
   for(const kf of sorted){
     const x=timeToX(kf.time);const sel=kf.id===selectedKfId;const R=sel?9:7;
-    if(sel){ctx.shadowColor='#f9c300';ctx.shadowBlur=10;}else{ctx.shadowColor='#13bfd5';ctx.shadowBlur=4;}
-    ctx.fillStyle=sel?'#f9c300':'#13bfd5';
+    ctx.shadowBlur=0;
+    ctx.fillStyle=sel?'#E8590C':'#1C2530';
     ctx.beginPath();ctx.moveTo(x,TRACK_H/2-R);ctx.lineTo(x+R,TRACK_H/2);ctx.lineTo(x,TRACK_H/2+R);ctx.lineTo(x-R,TRACK_H/2);ctx.closePath();ctx.fill();
     ctx.shadowBlur=0;
-    ctx.strokeStyle=sel?'#f9c30066':'#13bfd533';ctx.lineWidth=1;
+    ctx.strokeStyle=sel?'#E8590C66':'#1C253033';ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(x,TRACK_Y);ctx.lineTo(x,TRACK_H);ctx.stroke();
-    ctx.fillStyle=sel?'#f9c300':'#13bfd566';ctx.font='9px monospace';ctx.fillText(kf.time.toFixed(2),x+4,TRACK_H/2-12);
+    ctx.fillStyle=sel?'#E8590C':'#5A6572';ctx.font='9px IBM Plex Mono,monospace';ctx.fillText(kf.time.toFixed(2),x+4,TRACK_H/2-12);
   }
   const px=timeToX(currentTime);
-  ctx.shadowColor='#ff4444';ctx.shadowBlur=6;
-  ctx.strokeStyle='#ff5555';ctx.lineWidth=2;
+  ctx.shadowBlur=0;
+  ctx.strokeStyle='#E8590C';ctx.lineWidth=2;
   ctx.beginPath();ctx.moveTo(px,TRACK_Y);ctx.lineTo(px,TRACK_H);ctx.stroke();
   ctx.shadowBlur=0;
-  ctx.fillStyle='#ff5555';
+  ctx.fillStyle='#E8590C';
   ctx.beginPath();ctx.moveTo(px-6,TRACK_Y);ctx.lineTo(px+6,TRACK_Y);ctx.lineTo(px,TRACK_Y+10);ctx.closePath();ctx.fill();
 }
 
@@ -702,7 +752,7 @@ cv.addEventListener('click',e=>{
   document.querySelectorAll('.ji.highlight').forEach(el=>el.classList.remove('highlight'));
   if(!hits.length)return;
   selectedMesh=hits[0].object;selectedOrigColor=selectedMesh.material.color.getHex();
-  selectedMesh.material.color.set(0xf9c300);
+  selectedMesh.material.color.set(0xE8590C);
   const lname=selectedMesh.userData.linkName;
   Object.values(jointDefs).forEach(j=>{
     if(j.child===lname||j.parent===lname){const el=document.getElementById('ji_'+sid(j.name));if(el){el.classList.add('highlight');el.scrollIntoView({block:'nearest',behavior:'smooth'});}}
