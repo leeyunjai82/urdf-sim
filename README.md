@@ -1,34 +1,35 @@
 # URDF Web Simulator
 
-브라우저에서 바로 실행되는 URDF 로봇 시뮬레이터입니다. 설치 없이 URDF + STL 파일 업로드만으로 동작합니다.
+브라우저에서 바로 돌아가는 URDF 로봇 시뮬레이터. 설치 없이 URDF + STL 파일 업로드만으로 동작.
 
-A browser-based URDF robot simulator. No installation needed — just upload your URDF and STL files.
+데모: https://leeyunjai82.github.io/urdf-sim/
 
-**🔗 Live Demo → [leeyunjai82.github.io/urdf-sim](https://leeyunjai82.github.io/urdf-sim/)**
+<img src="test.gif" width="480">
 
----
+## 기능
 
-![demo](test.gif)
+- 3D 뷰어 (회전·이동·줌)
+- 관절 슬라이더, URDF limit 값 자동 적용
+- 포즈 JSON 저장·불러오기
+- 타임라인 기반 모션 편집
+- 와이어프레임·좌표축 토글
+- 스크린샷 저장
 
----
+## 사용법
 
-## 주요 기능 (Features)
-
-- 3D 뷰어 (회전 / 이동 / 줌) — 3D viewer (rotate / pan / zoom)
-- 관절 슬라이더 (URDF limit 자동 반영) — Joint sliders with URDF limits
-- 포즈 저장 / 불러오기 — Save / load pose as JSON
-- 타임라인 모션 에디터 — Timeline-based motion editor
-- 와이어프레임 / 좌표축 토글 — Wireframe / axis toggle
-- 스크린샷 — Screenshot export
-
-## 사용법 (How to Use)
-
-1. Live Demo 링크를 브라우저에서 열기
+1. 데모 링크 열기
 2. URDF 파일 선택
-3. STL 파일 다중 선택 (`meshes/` 폴더 전체)
-4. `로드 (Load)` 버튼 클릭
+3. `meshes/` 폴더의 STL 파일 다중 선택
+4. `로드` 버튼 클릭
 
-## 기술 스택 (Built With)
+## 예시 데이터
 
-- [Three.js r128](https://threejs.org/)
-- Pure HTML / JavaScript
+`data/` 폴더에 바로 써볼 수 있는 예시 로봇 포함. 각 폴더의 `meshes` zip을 풀어서 STL과 함께 올리면 됨.
+
+- `data/arm4` — 4축 데스크탑 로봇팔
+- `data/pibo` — Pibo 휴머노이드
+- `data/g1` — Unitree G1 (29 DOF)
+
+## 구성
+
+Three.js(r128) 기반 단일 HTML 파일. 빌드·의존성 설치 없음.
